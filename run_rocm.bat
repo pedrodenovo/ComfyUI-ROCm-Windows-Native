@@ -25,7 +25,7 @@ echo.
 :: 1. VRAM Mode
 :: =====================================================================
 echo [1] Low VRAM (--lowvram)
-echo [2] Mid/Normal VRAM (--normalvram)
+echo [2] Normal VRAM (Default - No flags)
 echo [3] High VRAM (--highvram)
 echo.
 echo [Saved Default: %LAST_VRAM%]
@@ -46,34 +46,24 @@ set /p "INPUT_FP8=Enable native FP8 processing (Y/N)? Press ENTER for default: "
 if "%INPUT_FP8%"=="" set "INPUT_FP8=%LAST_FP8%"
 
 :: =====================================================================
-:: 3. Local Network Access (Listen)
-:: =====================================================================
-echo.
-echo [Saved Default: %LAST_LAN%]
-set /p "INPUT_LAN=Allow local network access [--listen] (Y/N)? Press ENTER for default: "
-
-if "%INPUT_LAN%"=="" set "INPUT_LAN=%LAST_LAN%"
-
-:: =====================================================================
 :: Save choices for next time
 :: =====================================================================
 (
     echo LAST_VRAM=!INPUT_VRAM!
     echo LAST_FP8=!INPUT_FP8!
-    echo LAST_LAN=!INPUT_LAN!
 ) > "%CONFIG_FILE%"
 
 :: =====================================================================
 :: Build Launch Arguments
 :: =====================================================================
-set "ARGS=--!INPUT_VRAM!"
+set "ARGS="
+
+if not "!INPUT_VRAM!"=="normalvram" (
+    set "ARGS=--!INPUT_VRAM!"
+)
 
 if /I "!INPUT_FP8!"=="Y" (
     set "ARGS=!ARGS! --fp8_e4m3fn-unet"
-)
-
-if /I "!INPUT_LAN!"=="Y" (
-    set "ARGS=!ARGS! --listen"
 )
 
 :: =====================================================================
