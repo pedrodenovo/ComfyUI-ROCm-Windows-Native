@@ -23,17 +23,25 @@ if not exist "%PYTHON_EXE%" (
     exit /b 1
 )
 
-echo [1/4] Creating isolated virtual environment (%VENV_DIR%)...
-"%PYTHON_EXE%" -m venv "%VENV_DIR%"
+echo [1/4] Installing virtualenv on the embedded Python...
+"%PYTHON_EXE%" -m pip install virtualenv
+if %ERRORLEVEL% neq 0 (
+    echo [ERROR] Failed to install virtualenv.
+    pause
+    exit /b 1
+)
+
+echo [2/4] Creating isolated virtual environment (%VENV_DIR%)...
+"%PYTHON_EXE%" -m virtualenv "%VENV_DIR%"
 if %ERRORLEVEL% neq 0 (
     echo [ERROR] Failed to create the virtual environment.
     pause
     exit /b 1
 )
 
-echo [2/4] Downloading native Multi-arch PyTorch via AMD servers for %TARGET_ARCH%...
+echo [3/4] Downloading native Multi-arch PyTorch via AMD servers for %TARGET_ARCH%...
 call ".\%VENV_DIR%\Scripts\activate.bat"
-pip install --upgrade pip
+python -m pip install --upgrade pip
 pip install --index-url https://rocm.nightlies.amd.com/whl-multi-arch/ "torch[device-%TARGET_ARCH%]" "torchvision[device-%TARGET_ARCH%]" torchaudio
 if %ERRORLEVEL% neq 0 (
     echo [ERROR] Failed to install PyTorch for %TARGET_ARCH%. Check your architecture string or connection.
@@ -41,7 +49,7 @@ if %ERRORLEVEL% neq 0 (
     exit /b 1
 )
 
-echo [3/4] Installing ComfyUI dependencies and GGUF...
+echo [4/4] Installing ComfyUI dependencies and GGUF...
 pip install -r .\ComfyUI\requirements.txt
 pip install gguf
 if %ERRORLEVEL% neq 0 (
@@ -50,17 +58,9 @@ if %ERRORLEVEL% neq 0 (
     exit /b 1
 )
 
-echo [4/4] Generating production launch shortcut (run_rocm.bat)...
-(
-echo @echo off
-echo call ".\%VENV_DIR%\Scripts\activate.bat"
-echo python .\ComfyUI\main.py
-echo pause
-) > run_rocm.bat
-
 echo.
 echo =====================================================================
 echo [SUCCESS] Installation completed for %TARGET_ARCH%!
-echo To generate images, always execute this file: run_rocm.bat
+echo To generate images, use your custom launcher: run_rocm.bat
 echo =====================================================================
 pause
